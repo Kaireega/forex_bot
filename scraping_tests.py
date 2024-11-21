@@ -6,6 +6,6 @@ from scraping.fx_calendar import fx_calendar
 if __name__ == "__main__":
     #print(dailyfx_com())
     # print(investing_com())
-    data = bloomberg_com()
-    [print(x) for x in data]
-    # print(fx_calendar())
+    # data = bloomberg_com()
+    # [print(x) for x in data]
+    fx_calendar("2022-01-07T00:00:00Z" , "2022-03-25T00:00:00Z")

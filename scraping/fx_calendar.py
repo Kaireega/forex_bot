@@ -91,12 +91,12 @@ def get_fx_calendar(from_date):
     return final_data
     
 
-def fx_calendar():
+def fx_calendar(start, end):
     
     final_data = []
 
-    start = parser.parse("2022-03-07T00:00:00Z")
-    end = parser.parse("2022-03-25T00:00:00Z")
+    start = parser.parse(start) # "2022-03-07T00:00:00Z"
+    end = parser.parse(end) # "2022-03-25T00:00:00Z"
 
     while start < end:
         print(start)
@@ -104,8 +104,8 @@ def fx_calendar():
         start = start + dt.timedelta(days=7)
         time.sleep(1)
 
-    print(pd.DataFrame.from_dict(final_data))
-
+    print(final_data)
+    return final_data
 
 
 
