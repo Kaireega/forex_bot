@@ -104,7 +104,7 @@ def fx_calendar(start, end):
         start = start + dt.timedelta(days=7)
         time.sleep(1)
 
-    print(final_data)
+    print(pd.DataFrame.from_dict(final_data))
     return final_data
 
 

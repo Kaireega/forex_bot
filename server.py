@@ -9,7 +9,7 @@ from scraping.fx_calendar import fx_calendar
 from scraping.investing_com import get_pair
 
 app = Flask(__name__)
-CORS(app)
+CORS(app) 
 
 def get_response(data):
     if data is None:
@@ -50,21 +50,21 @@ def technicals(pair, tf):
 def prices(pair, granularity, count):
     return get_response(OandaApi().web_api_candles(pair, granularity, count))
 
-# @app.route("/api/calender/<start>/<end>")
-# def calendar(start, end):
+@app.route("/api/calendar/<start>/<end>")
+def calendar(start, end):
 
-#     try:
-#         # Get the data from fx_calendar
-#         data = fx_calendar(start, end)
-#         # Return the data as a JSON response
-#         return jsonify(data)
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
-
-
+    try:
+        # Get the data from fx_calendar
+        data = fx_calendar(start, end)
+        # Return the data as a JSON response
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 
-# if __name__ == "__main__":
-#     app.run(debug=True)
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
