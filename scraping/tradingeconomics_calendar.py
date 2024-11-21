@@ -71,64 +71,47 @@ def get_fx_calendar(from_date):
 
     table = soup.select_one("table#calendar")
 
-    last_header_date = None
+    if not table:
+        print("Calendar table not found.")
+        return []
+
+    tbody = table.find("tbody")
+    if not tbody:
+        print("No tbody found in table.")
+        return []
+
     trs = {}
     final_data = []
 
-    for c in table.children:
-        if c.name == 'thead':
-            if 'class' in c.attrs and 'hidden-head' in c.attrs['class']:
-                continue
-            last_header_date = get_date(c)
+    rows = tbody.find_all("tr")
+    last_header_date = None
+
+    for row in rows:
+        # Assuming the row with colspan is the date row
+        th = row.find("th")
+        if th and th.has_attr("colspan"):
+            date_text = th.get_text(strip=True)
+            last_header_date = parser.parse(date_text)
             trs[last_header_date] = []
-        elif c.name == "tr":
-            trs[last_header_date].append(c)
+        elif last_header_date:
+            trs[last_header_date].append(row)
 
     for item_date, table_rows in trs.items():
         final_data += get_data_dict(item_date, table_rows)
 
-    #[print(x) for x in final_data]
     return final_data
-    
 
 def fx_calendar(start, end):
-    
     final_data = []
-
-    start = parser.parse(start) # "2022-03-07T00:00:00Z"
-    end = parser.parse(end) # "2022-03-25T00:00:00Z"
+    start = parser.parse(start)
+    end = parser.parse(end)
 
     while start < end:
-        print(start)
+        print(f"Fetching data for week starting: {start}")
         final_data += get_fx_calendar(start)
         start = start + dt.timedelta(days=7)
         time.sleep(1)
 
-    print(pd.DataFrame.from_dict(final_data))
+    df = pd.DataFrame.from_dict(final_data)
+    print(df)
     return final_data
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
