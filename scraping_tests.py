@@ -2,7 +2,7 @@ from scraping.dailyfx_com import dailyfx_com
 from scraping.forexfactory_calendar import get_monthly_data
 from scraping.investing_com import investing_com
 from scraping.bloomberg_com import bloomberg_com
-from scraping.fx_calendar import fx_calendar
+from scraping.tradingeconomics_calendar import fx_calendar
 
 if __name__ == "__main__":
     #print(dailyfx_com())

@@ -5,7 +5,7 @@ from api.web_options import get_options
 import http
 
 from scraping.bloomberg_com import bloomberg_com
-from scraping.fx_calendar import fx_calendar
+from scraping.tradingeconomics_calendar import fx_calendar
 from scraping.investing_com import get_pair
 
 app = Flask(__name__)
