@@ -14,7 +14,10 @@ const endPoints = {
     options: () => requests.get("/options"),
     technicals: (p,g) => requests.get(`/technicals/${p}/${g}`),
     prices: (p,g,c) => requests.get(`/prices/${p}/${g}/${c}`),
-    calendar:(s,e) => requests.get(`/calendar/${s}/${e}`)
+    te_calendar:(s,e) => requests.get(`/te/calendar/${s}/${e}`),
+    ff_calendar:(s) => requests.get(`/ff/calendar/${s}`)
+
+
 }
 
 export default endPoints;

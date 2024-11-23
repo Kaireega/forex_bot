@@ -62,9 +62,9 @@ def forexfactory_calendar(month):
 
 def get_monthly_data(month):
     print(f"Fetching data for: {month}")
-    month_data = get_forex_calendar(month)
+    month_data = forexfactory_calendar(month)
 
     # Convert the data into a DataFrame
     df = pd.DataFrame(month_data)
-    return df
+    return month_data
 

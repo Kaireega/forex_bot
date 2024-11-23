@@ -5,6 +5,7 @@ from api.web_options import get_options
 import http
 
 from scraping.bloomberg_com import bloomberg_com
+from scraping.forexfactory_calendar import get_monthly_data
 from scraping.tradingeconomics_calendar import fx_calendar
 from scraping.investing_com import get_pair
 
@@ -50,9 +51,8 @@ def technicals(pair, tf):
 def prices(pair, granularity, count):
     return get_response(OandaApi().web_api_candles(pair, granularity, count))
 
-@app.route("/api/calendar/<start>/<end>")
-def calendar(start, end):
-
+@app.route("/api/te/calendar/<start>/<end>")
+def te_calendar(start, end):
     try:
         # Get the data from fx_calendar
         data = fx_calendar(start, end)
@@ -60,6 +60,19 @@ def calendar(start, end):
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/ff/calendar/<start>")
+def ff_calendar(start):
+    try:
+        # Get the data from fx_calendar
+        data = get_monthly_data(start)
+        # Return the data as a JSON response
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 
 
 if __name__ == "__main__":

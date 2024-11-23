@@ -1,9 +1,9 @@
 import React from 'react';
 
-function Calendar({ data }) {
+function TECalendar({ data }) {
     return (
         <div>
-            <h2>Economic Data</h2>
+         
             {data && data.length > 0 ? (
                 <table border="1" style={{ width: '100%', textAlign: 'left' }}>
                     <thead>
@@ -42,4 +42,4 @@ function Calendar({ data }) {
     );
 }
 
-export default Calendar;
+export default TECalendar;
