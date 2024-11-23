@@ -7,37 +7,30 @@ import endPoints from '../app/api';
 import Button from '../components/Button';
 import TitleHead from '../components/TitleHead';
 
-
 function Home() {
     const [startDate, setStartDate] = useState(""); // Start date input
     const [endDate, setEndDate] = useState("");   // End date input
     const [calendarData, setCalendarData] = useState(null); // Calendar data from API
-    const [loading, setLoading] = useState(true); // Loading state
-
+    const [loadingTE, setLoadingTE] = useState(false); // Loading state for TE Calendar
 
     const [ffstartDate, setffStartDate] = useState(""); // Start date input
     const [ffcalendarData, setffCalendarData] = useState(null); // Calendar data from API
+    const [loadingFF, setLoadingFF] = useState(false); // Loading state for FF Calendar
 
-   
     // Format date to desired format
     const formatDate = (date) => {
         if (!date) return "";
         const months = ["Jan.", "Feb.", "Mar.", "Apr.", "May.", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
         const [year, month] = date.split("-");
         const formattedMonth = months[parseInt(month, 10) - 1];
-        return `${formattedMonth}${year}`;
+        return `${formattedMonth}${year}`
     };
-   
-   
+
     const formatDateForAPI = (date) => {
         if (!date) return "";
         const d = new Date(date);
         return `${d.toISOString().split(".")[0]}Z`; // Convert to ISO format and append 'Z'
     };
-
-    useEffect(() => {
-        setLoading(false); // Initialize UI without fetching data yet
-    }, []);
 
     const loadteCalendarData = async () => {
         if (!startDate || !endDate) {
@@ -47,9 +40,7 @@ function Home() {
         const formattedStartDate = formatDateForAPI(startDate);
         const formattedEndDate = formatDateForAPI(endDate);
 
-        console.log("Fetching data with:", formattedStartDate, formattedEndDate);
-
-        setLoading(true);
+        setLoadingTE(true);
         try {
             const data = await endPoints.te_calendar(formattedStartDate, formattedEndDate);
             setCalendarData(data);
@@ -57,41 +48,33 @@ function Home() {
             console.error("Error fetching calendar data:", error);
             alert("Failed to fetch calendar data.");
         } finally {
-            setLoading(false);
+            setLoadingTE(false);
         }
     };
+
     const loadffCalendarData = async () => {
         if (!ffstartDate) {
             alert("Please select start.", ffstartDate);
             return;
-        }        const formattStartDate = formatDate(ffstartDate);
+        }
+        const formattStartDate = formatDate(ffstartDate);
 
-        setLoading(true);
+        setLoadingFF(true);
         try {
             const data = await endPoints.ff_calendar(formattStartDate);
             setffCalendarData(data);
-            console.log(data)
+            console.log(data);
         } catch (error) {
             console.error("Error fetching calendar data:", error);
             alert("Failed to fetch calendar data.");
         } finally {
-            setLoading(false);
+            setLoadingFF(false);
         }
     };
 
-    if (loading) return <h1>Loading...</h1>;
-
-
-
-
-
-
-
     return (
         <div>
-
             <AccountSummary />
-            
             <Headlines />
 
             <TitleHead title="TradingEconomics - Economic Calendar" />
@@ -118,10 +101,7 @@ function Home() {
                 <Button text="Fetch Data" handleClick={loadteCalendarData} />
             </div>
             <TitleHead title="TradingEconomics Calendar Data" />
-            {calendarData && <TECalendar data={calendarData} />}
-
-
-
+            {loadingTE ? <h1>Loading...</h1> : calendarData && <TECalendar data={calendarData} />}
 
             <TitleHead title="Forex Factory - Economic Calendar" />
             <div className="segment options">
@@ -132,16 +112,14 @@ function Home() {
                             type="date" 
                             value={ffstartDate} 
                             onChange={(e) => setffStartDate(e.target.value)}
-                           
                         />
                     </label>
-                   
                     <div></div>
                 </div>
                 <Button text="Fetch Data" handleClick={loadffCalendarData} />
             </div>
             <TitleHead title="Forex Factory Calendar Data" />
-            {ffcalendarData && <FFCalendar data={ffcalendarData} />}
+            {loadingFF ? <h1>Loading...</h1> : ffcalendarData && <FFCalendar data={ffcalendarData} />}
         </div>
     );
 }
