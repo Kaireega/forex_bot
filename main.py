@@ -1,8 +1,9 @@
 from api.oanda_api import OandaApi
-from infrastructure.instrument_collection import instrumentCollection
+from infrastructure.instrument_collection import instrumentCollection 
 from stream_bot.stream_bot import run_bot
 from stream_example.streamer import run_streamer
 from db.db import DataDB
+from infrastructure.collect_data import run_collection
 
 
 def db_tests():
@@ -14,7 +15,7 @@ def db_tests():
 
 if __name__ == '__main__':
     api = OandaApi()    
-    #instrumentCollection.LoadInstruments("./data")
+    instrumentCollection.LoadInstruments("./data")
     #instrumentCollection.CreateDB(api.get_account_instruments())
     # instrumentCollection.LoadInstrumentsDB()
     # print(instrumentCollection.instruments_dict)
@@ -22,6 +23,7 @@ if __name__ == '__main__':
     #d = DataDB()
     #d.test_connection()
     #db_tests()
-    run_bot()
+    # run_bot()
+    run_collection(instrumentCollection,api)
     
     

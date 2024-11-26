@@ -8,6 +8,7 @@ function NavigationBar() {
         <div id="navlinks">
             <NavbarLink path="/" text="Home"/>
             <NavbarLink path="/dashboard" text="Dashboard"/>
+            <NavbarLink path="/CheatSheet" text="CheatSheet"/>
         </div>
     </div>
   )

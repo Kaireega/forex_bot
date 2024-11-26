@@ -5,6 +5,7 @@ import {
   Routes
 } from 'react-router-dom';
 import Home from "./pages/Home";
+import CheatSheet from "./pages/CheatSheet";
 import Dashboard from "./pages/Dashboard";
 import Footer from "./components/Footer";
 
@@ -19,6 +20,7 @@ function App() {
             <Routes>
               <Route exact path="/" element={<Home />}/>
               <Route exact path="/dashboard" element={<Dashboard />}/>
+              <Route exact path="/CheatSheet" element={<CheatSheet/>}/>
             </Routes>
           </div>
           <Footer />

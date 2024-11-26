@@ -7,6 +7,7 @@ import endPoints from '../app/api';
 import Button from '../components/Button';
 import TitleHead from '../components/TitleHead';
 
+
 function Home() {
     const [startDate, setStartDate] = useState(""); // Start date input
     const [endDate, setEndDate] = useState("");   // End date input
