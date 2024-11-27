@@ -12,7 +12,7 @@
   }
   
   .section {
-    background-color: #f9f9f9;
+    background-color: #696b70;
     padding: 15px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -40,4 +40,7 @@
     line-height: 1.5;
     color: #555;
   }
-  
+  .th_c{
+    background-color: #ccd136;
+
+  }

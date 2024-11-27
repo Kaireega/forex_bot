@@ -6,6 +6,8 @@ import PriceChart from '../components/PriceChart';
 import Select from '../components/Select';
 import Technicals from '../components/Technicals';
 import TitleHead from '../components/TitleHead';
+import TECalendar from '../components/TECalendar';
+import FFCalendar from '../components/FFCalendar';
 
 function Dashboard() {
 
@@ -17,9 +19,77 @@ function Dashboard() {
   const [ options, setOptions ] = useState(null);
   const [ loading, setLoading ] = useState(true);
 
+  const [startDate, setStartDate] = useState(""); // Start date input
+  const [endDate, setEndDate] = useState("");   // End date input
+  const [calendarData, setCalendarData] = useState(null); // Calendar data from API
+  const [loadingTE, setLoadingTE] = useState(false); // Loading state for TE Calendar
+
+  const [ffstartDate, setffStartDate] = useState(""); // Start date input
+  const [ffcalendarData, setffCalendarData] = useState(null); // Calendar data from API
+  const [loadingFF, setLoadingFF] = useState(false); // Loading state for FF Calendar
+
+
   useEffect(() => {
     loadOptions();
   }, []);
+
+  
+    const loadffCalendarData = async () => {
+      if (!ffstartDate) {
+          alert("Please select start.", ffstartDate);
+          return;
+      }
+      const formattStartDate = formatDate(ffstartDate);
+
+      setLoadingFF(true);
+      try {
+          const data = await endPoints.ff_calendar(formattStartDate);
+          setffCalendarData(data);
+          console.log(data);
+      } catch (error) {
+          console.error("Error fetching calendar data:", error);
+          alert("Failed to fetch calendar data.");
+      } finally {
+          setLoadingFF(false);
+      }
+  };
+
+  const loadteCalendarData = async () => {
+    if (!startDate || !endDate) {
+        alert("Please select both start and end dates.");
+        return;
+    }
+    const formattedStartDate = formatDateForAPI(startDate);
+    const formattedEndDate = formatDateForAPI(endDate);
+
+    setLoadingTE(true);
+    try {
+        const data = await endPoints.te_calendar(formattedStartDate, formattedEndDate);
+        setCalendarData(data);
+    } catch (error) {
+        console.error("Error fetching calendar data:", error);
+        alert("Failed to fetch calendar data.");
+    } finally {
+        setLoadingTE(false);
+    }
+  };
+  
+    // Format date to desired format
+    const formatDate = (date) => {
+      if (!date) return "";
+      const months = ["Jan.", "Feb.", "Mar.", "Apr.", "May.", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
+      const [year, month] = date.split("-");
+      const formattedMonth = months[parseInt(month, 10) - 1];
+      return `${formattedMonth}${year}`
+  };
+
+  const formatDateForAPI = (date) => {
+      if (!date) return "";
+      const d = new Date(date);
+      return `${d.toISOString().split(".")[0]}Z`; // Convert to ISO format and append 'Z'
+  };
+
+
 
   const handleCountChange = (count) => {
     setSelectedCount(count);
@@ -49,8 +119,8 @@ function Dashboard() {
 
   return (
     <div>
-      <TitleHead title="Options" />
-      <div className="segment options">
+  
+      <div className="segment_options">
         <Select 
           name="Currency"
           title="Select currency"
@@ -69,7 +139,7 @@ function Dashboard() {
       </div>
       <TitleHead title="Technicals" />
       { technicalsData && <Technicals data={technicalsData} /> }
-      <TitleHead title="Price Chart" />
+  
       { priceData && <PriceChart
         selectedCount={selectedCount}
         selectedPair={selectedPair}
@@ -77,6 +147,51 @@ function Dashboard() {
         handleCountChange={handleCountChange}
         priceData={priceData}
       />}
+
+<TitleHead title="TradingEconomics - Economic Calendar" />
+            <div className="segment_options">
+                <div className="date-picker">
+                    <label>
+                        Start Date: 
+                        <input 
+                            type="date" 
+                            value={startDate} 
+                            onChange={(e) => setStartDate(e.target.value)} 
+                        />
+                    </label>
+                    <label>
+                        End Date: 
+                        <input 
+                            type="date" 
+                            value={endDate} 
+                            onChange={(e) => setEndDate(e.target.value)} 
+                        />
+                    </label>
+                    <div></div>
+                </div>
+                <Button text="Fetch Data" handleClick={loadteCalendarData} />
+            </div>
+            
+            {loadingTE ? <h1>Loading...</h1> : calendarData && <TECalendar data={calendarData} />}
+
+            <TitleHead title="Forex Factory - Economic Calendar" />
+            <div className="segment_options">
+                <div className="date-picker">
+                    <label>
+                        Start Date: 
+                        <input 
+                            type="date" 
+                            value={ffstartDate} 
+                            onChange={(e) => setffStartDate(e.target.value)}
+                        />
+                    </label>
+                    <div></div>
+                </div>
+                <Button text="Fetch Data" handleClick={loadffCalendarData} />
+            </div>
+           
+            {loadingFF ? <h1>Loading...</h1> : ffcalendarData && <FFCalendar data={ffcalendarData} />}
+
     </div>
   )
 }

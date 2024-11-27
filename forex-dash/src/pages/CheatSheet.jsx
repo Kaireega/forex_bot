@@ -1,5 +1,7 @@
 import React from 'react';
 import './Cheatsheet.css';
+import TitleHead from '../components/TitleHead';
+
 
 function CheatSheet() {
   return ( 
@@ -9,7 +11,7 @@ function CheatSheet() {
 
         <div className="row">
             <div className="section">
-            <h2>Trend Analysis</h2>
+            <TitleHead title="Trend Analysis"/>
             <ol>
                 <li>Identify uptrend, downtrend, or range.</li>
                 <li>Support/Resistance Levels: Mark critical price zones.</li>
@@ -21,7 +23,8 @@ function CheatSheet() {
             </div>
 
             <div className="section">
-            <h2>Risk Management Tips</h2>
+            <TitleHead title="Risk Management Tips"/>
+
             <ul>
                 <li>Risk-Reward Ratio: Aim for at least 1:2.</li>
                 <li>Position Sizing: Risk 1-2% of account balance per trade.</li>
@@ -32,7 +35,9 @@ function CheatSheet() {
             </div>
 
             <div className="section">
-            <h2>Candlestick Patterns</h2>
+          
+            <TitleHead title="Candlestick Patterns"/>
+            
             <ul>
                 <li>
                 Bullish Reversal:
@@ -58,7 +63,8 @@ function CheatSheet() {
 
         <div className="row">
             <div className="section">
-            <h2>Common Chart Patterns</h2>
+            <TitleHead title="Common Chart Patterns"/>
+
             <ul>
                 <li>
                 Reversal Patterns:
@@ -78,12 +84,15 @@ function CheatSheet() {
             </div>
 
             <div className="section">
-            <h2>Key Forex Terms</h2>
+        
+            <TitleHead title="Key Forex Terms"/>
+
             <p>Include definitions of key terms, like pips, lots, leverage, margin, etc.</p>
             </div>
 
             <div className="section">
-            <h2>Popular Forex Strategies</h2>
+            <TitleHead title="Popular Forex Strategies"/>
+
             <ol>
                 <li>
                 Scalping:
@@ -111,13 +120,14 @@ function CheatSheet() {
         </div>
 
             <div>
-                <h1>Economic Events to Watch</h1>
-                    <table border="1">
-                    <thead>
+                <TitleHead title="Economic Events to Watch"/>
+
+                    <table border="3">
+                    <thead >
                         <tr>
-                        <th>Event</th>
-                        <th>Impacted Pairs</th>
-                        <th>Effect</th>
+                        <th className='th_c'>Event</th>
+                        <th className='th_c'>Impacted Pairs</th>
+                        <th className='th_c'>Effect</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -150,14 +160,14 @@ function CheatSheet() {
                 </table>
             </div>
             <div>
-                <h1>Key Trading Sessions</h1>
-                    <table border="1">
+                <TitleHead title="Key Trading Sessions"/>
+                    <table border="3">
                     <thead>
                         <tr>
-                        <th>Session</th>
-                        <th>Major Markets</th>
-                        <th>Key Pairs</th>
-                        <th>Volatility</th>
+                        <th className='th_c'>Session</th>
+                        <th className='th_c'>Major Markets</th>
+                        <th className='th_c'>Key Pairs</th>
+                        <th className='th_c'> Volatility</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -191,10 +201,6 @@ function CheatSheet() {
         </div>
     </>
  
-
-
-
-
 )}
 
 export default CheatSheet
