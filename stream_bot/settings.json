@@ -1,6 +1,6 @@
 {
-    "trade_risk": 5,
-    "granularity": "M1",
+    "trade_risk": 1,
+    "granularity": "M5",
     "pairs": {
         "EUR_USD": {
             "n_ma": 12,

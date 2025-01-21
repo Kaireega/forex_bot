@@ -19,9 +19,8 @@ GRANULARITIES = {
 
 class PriceProcessor(StreamBase):
 
-    def __init__(self, shared_prices, price_lock: threading.Lock, price_events, 
-                 candle_queue: Queue,
-                 logname, pair, granularity):
+    def __init__(self, shared_prices, price_lock: threading.Lock, price_events, candle_queue: Queue,logname, pair, granularity):
+       
         super().__init__(shared_prices, price_lock, price_events, logname)
         self.pair = pair
         self.candle_queue = candle_queue
@@ -54,7 +53,7 @@ class PriceProcessor(StreamBase):
         self.set_last_candle(price.time)
 
         if old < self.last_complete_candle_time:
-            msg = f"--->>>> {self.pair} New Candle : {self.last_complete_candle_time} {price.time}"
+            msg = f"--->>>> {self.pair} New Candle : {self.last_complete_candle_time} {price.time}  ASK: {price.ask} BID: {price.bid}"
             print(msg)
             self.candle_queue.put(self.last_complete_candle_time)
 

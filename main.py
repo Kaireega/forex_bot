@@ -23,7 +23,7 @@ if __name__ == '__main__':
     #d = DataDB()
     #d.test_connection()
     #db_tests()
-    # run_bot()
-    run_collection(instrumentCollection,api)
+    run_bot()
+    # run_collection(instrumentCollection,api)
     
     

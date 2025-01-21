@@ -13,7 +13,7 @@ STREAM_URL = f"https://stream-fxpractice.oanda.com/v3"
 
 class PriceStreamer(StreamBase):
 
-    LOG_FREQ = 20
+    LOG_FREQ = 30
 
     def __init__(self, shared_prices, price_lock: threading.Lock, price_events):
         super().__init__(shared_prices, price_lock, price_events, "PriceStreamer")
@@ -58,7 +58,7 @@ class PriceStreamer(StreamBase):
                 if 'type' in decoded_price and decoded_price['type'] == 'PRICE':
                     self.update_live_price(LiveApiPrice(decoded_price))
                     if timer() - start > PriceStreamer.LOG_FREQ:
-                        print(LiveApiPrice(decoded_price).get_dict())
+                        # print(LiveApiPrice(decoded_price).get_dict())
                         self.log_data()
                         start = timer()
                     

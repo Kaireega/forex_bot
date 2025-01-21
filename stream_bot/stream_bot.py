@@ -35,10 +35,10 @@ def run_bot():
     price_stream_t.start()
 
 
-    trade_worker_t = TradeWorker(trade_work_queue, tradeSettingsCollection.trade_risk)
-    trade_worker_t.daemon = True
-    threads.append(trade_worker_t)
-    trade_worker_t.start()
+    # trade_worker_t = TradeWorker(trade_work_queue, tradeSettingsCollection.trade_risk)
+    # trade_worker_t.daemon = True
+    # threads.append(trade_worker_t)
+    # trade_worker_t.start()
 
     
     for p in tradeSettingsCollection.pair_list():
@@ -51,15 +51,15 @@ def run_bot():
         processing_t.start()
 
     
-    for p in tradeSettingsCollection.pair_list():
-        candle_t = CandleWorker(
-                                    tradeSettingsCollection.get_trade_settings(p),
-                                    candle_queue,
-                                    trade_work_queue,
-                                    tradeSettingsCollection.granularity)
-        candle_t.daemon = True
-        threads.append(candle_t)
-        candle_t.start()
+    # for p in tradeSettingsCollection.pair_list():
+    #     candle_t = CandleWorker(
+    #                                 tradeSettingsCollection.get_trade_settings(p),
+    #                                 candle_queue,
+    #                                 trade_work_queue,
+    #                                 tradeSettingsCollection.granularity)
+    #     candle_t.daemon = True
+    #     threads.append(candle_t)
+    #     candle_t.start()
 
     
     try:
