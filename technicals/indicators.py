@@ -48,8 +48,8 @@ def MACD(df: pd.DataFrame, n_slow=26, n_fast=12, n_signal=9):
     ema_short = df.mid_c.ewm(min_periods=n_fast, span=n_fast).mean()
 
     df['MACD'] = ema_short - ema_long
-    df['SIGNAL'] = df.MACD.ewm(min_periods=n_signal, span=n_signal).mean()
-    df['HIST'] = df.MACD - df.SIGNAL
+    df['SIGNAL_MD'] = df.MACD.ewm(min_periods=n_signal, span=n_signal).mean()
+    df['HIST'] = df.MACD - df.SIGNAL_MD
 
     return df
 
