@@ -1,40 +1,66 @@
-{
-    "trade_risk": 10,
-    "pairs": {
-        "GBP_CHF": {
-        "n_ma": 12,
-        "n_std": 2.5,
-        "maxspread": 0.0004,
-        "mingain": 0.0006,
-        "riskreward": 1.5
-        },
-        "EUR_CHF": {
-            "n_ma": 12,
-            "n_std": 2.5,
-            "maxspread": 0.0004,
-            "mingain": 0.0006,
-            "riskreward": 1.5
-        },
-        "GBP_JPY": {
-            "n_ma": 12,
-            "n_std": 2.5,
-            "maxspread": 0.04,
-            "mingain": 0.06,
-            "riskreward": 1.5
-        },
-        "GBP_USD": {
-            "n_ma": 12,
-            "n_std": 2.5,
-            "maxspread": 0.0004,
-            "mingain": 0.0006,
-            "riskreward": 1.5
-        },
-        "EUR_GBP": {
-            "n_ma": 12,
-            "n_std": 2.5,
-            "maxspread": 0.0004,
-            "mingain": 0.0006,
-            "riskreward": 1.5
+ {
+        "trade_risk": 1,
+        "pairs": {
+            "EUR_USD": {
+                "n_ma": 12,                // Moving Average period for Bollinger Bands
+                "n_std": 2.5,              // Standard Deviation multiplier for Bollinger Bands
+                "maxspread": 0.0004,       // Maximum acceptable spread
+                "mingain": 0.0006,         // Minimum gain required
+                "riskreward": 1.5,         // Risk-reward ratio
+                "atr_period": 14,          // ATR calculation period
+                "atr_multiplier": 2,       // ATR multiplier for SL/TP
+                "rsi_period": 14,          // RSI calculation period
+                "rsi_overbought": 70,      // RSI overbought threshold
+                "rsi_oversold": 30         // RSI oversold threshold
+            },
+            "USD_JPY": {
+                "n_ma": 12,
+                "n_std": 2.5,
+                "maxspread": 0.04,
+                "mingain": 0.06,
+                "riskreward": 1.5,
+                "atr_period": 14,
+                "atr_multiplier": 2,
+                "rsi_period": 14,
+                "rsi_overbought": 70,
+                "rsi_oversold": 30
+            },
+            "USD_CAD": {
+                "n_ma": 12,
+                "n_std": 2.5,
+                "maxspread": 0.0004,
+                "mingain": 0.0006,
+                "riskreward": 1.5,
+                "atr_period": 14,
+                "atr_multiplier": 2,
+                "rsi_period": 14,
+                "rsi_overbought": 70,
+                "rsi_oversold": 30
+            },
+            "GBP_USD": {
+                "n_ma": 12,
+                "n_std": 2.5,
+                "maxspread": 0.0004,
+                "mingain": 0.0006,
+                "riskreward": 1.5,
+                "atr_period": 14,
+                "atr_multiplier": 2,
+                "rsi_period": 14,
+                "rsi_overbought": 70,
+                "rsi_oversold": 30
+            },
+            "GBP_JPY": {
+                "n_ma": 12,
+                "n_std": 2.5,
+                "maxspread": 0.04,
+                "mingain": 0.06,
+                "riskreward": 1.5,
+                "atr_period": 14,
+                "atr_multiplier": 2,
+                "rsi_period": 14,
+                "rsi_overbought": 70,
+                "rsi_oversold": 30
+            }
         }
     }
-}
+    

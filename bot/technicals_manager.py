@@ -14,13 +14,31 @@ import constants.defs as defs
 ADDROWS = 20
 
 def apply_signal(row, trade_settings: TradeSettings):
+    # Check if all conditions for a BUY signal are met
+    if (
+        row.SPREAD <= trade_settings.maxspread and
+        row.GAIN >= trade_settings.mingain and
+        row.mid_c < row.BB_LW and row.mid_o > row.BB_LW and  # Bollinger Bands condition for BUY
+        row[f"ATR_{trade_settings.atr_period}"] > trade_settings.atr_threshold and  # ATR condition for volatility
+        row[f"RSI_{trade_settings.rsi_period}"] < trade_settings.rsi_oversold and  # RSI condition for oversold
+        row.MACD > row.SIGNAL  # MACD condition for upward momentum
+    ):
+        return defs.BUY
 
-    if row.SPREAD <= trade_settings.maxspread and row.GAIN >= trade_settings.mingain:
-        if row.mid_c > row.BB_UP and row.mid_o < row.BB_UP:
-            return defs.SELL
-        elif row.mid_c < row.BB_LW and row.mid_o > row.BB_LW:
-            return defs.BUY
+    # Check if all conditions for a SELL signal are met
+    elif (
+        row.SPREAD <= trade_settings.maxspread and
+        row.GAIN >= trade_settings.mingain and
+        row.mid_c > row.BB_UP and row.mid_o < row.BB_UP and  # Bollinger Bands condition for SELL
+        row[f"ATR_{trade_settings.atr_period}"] > trade_settings.atr_threshold and  # ATR condition for volatility
+        row[f"RSI_{trade_settings.rsi_period}"] > trade_settings.rsi_overbought and  # RSI condition for overbought
+        row.MACD < row.SIGNAL  # MACD condition for downward momentum
+    ):
+        return defs.SELL
+
+    # If no conditions are met, return NONE
     return defs.NONE
+
 
 def apply_SL(row, trade_settings: TradeSettings):
     if row.SIGNAL == defs.BUY:
