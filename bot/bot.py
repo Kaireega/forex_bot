@@ -15,7 +15,7 @@ class Bot:
 
     ERROR_LOG = "error"
     MAIN_LOG = "main"
-    GRANULARITY = "M5"
+    GRANULARITY = "M15"
     SLEEP = 10
 
     def __init__(self):
