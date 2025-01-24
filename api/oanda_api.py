@@ -220,14 +220,6 @@ class OandaApi:
                 detailed_positions.append({
                     "instrument": position["instrument"],
                     "realizedPL": float(position.get("pl", 0)),
-                    "unrealizedPL": float(position.get("unrealizedPL", 0)),
-                    "marginUsed": float(position.get("marginUsed", 0)),
-                    "commission": float(position.get("commission", 0)),
-                    "financing": float(position.get("financing", 0)),
-                    "long_units": position["long"].get("units", 0),
-                    "long_unrealizedPL": position["long"].get("unrealizedPL", 0),
-                    "short_units": position["short"].get("units", 0),
-                    "short_unrealizedPL": position["short"].get("unrealizedPL", 0),
                 })
 
             return detailed_positions

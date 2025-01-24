@@ -17,15 +17,15 @@
         "USD_JPY": {
             "n_ma": 20,
             "n_std": 2.0,
-            "maxspread": 0.025,       
-            "mingain": 0.08,          
-            "riskreward": 2.2,        
-            "atr_period": 14,
-            "atr_multiplier": 2,
-            "atr_threshold": 0.045,  
+            "maxspread": 0.035,       
+            "mingain": 0.12,          
+            "riskreward": 1.1, 
+            "atr_period": 14,      
+            "atr_multiplier": 0.6,    
+            "atr_threshold": 0.04,    
             "rsi_period": 14,
-            "rsi_overbought": 65,
-            "rsi_oversold": 35
+            "rsi_overbought": 70,
+            "rsi_oversold": 30
         },
         "USD_CAD": {
             "n_ma": 20,
@@ -58,7 +58,7 @@
             "n_std": 2.0,
             "maxspread": 0.035,       
             "mingain": 0.12,          
-            "riskreward": 1.1, 
+            "riskreward": 2.5, 
             "atr_period": 14,      
             "atr_multiplier": 0.6,    
             "atr_threshold": 0.04,    
