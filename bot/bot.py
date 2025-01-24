@@ -67,62 +67,11 @@ class Bot:
                     self.log_to_main(f"Place Trade: {trade_decision}")
                     place_trade(trade_decision, self.api, self.log_message, self.log_to_error, self.trade_risk)
 
-    def positions_have_changed(self, new_positions):
-        """
-        Check if the new positions differ from the last logged positions.
-        """
-        new_positions_dict = {p["instrument"]: p for p in new_positions}
-        if new_positions_dict != self.last_logged_positions:
-            return True
-        return False
-
-    def log_positions_to_excel(self, positions, filename="./logs/position_tracking.xlsx"):
-        """
-        Save position details to an Excel sheet.
-        """
-        if not positions:
-            self.log_to_main("No positions to log. Skipping Excel update.")
-            return
-
-        df = pd.DataFrame(positions)
-
-        # Check if the file exists
-        file_exists = os.path.exists(filename)
-
-        try:
-            if file_exists:
-                with pd.ExcelWriter(filename, mode="a", engine="openpyxl", if_sheet_exists="overlay") as writer:
-                    df.to_excel(writer, index=False, sheet_name="Positions")
-            else:
-                with pd.ExcelWriter(filename, mode="w", engine="openpyxl") as writer:
-                    df.to_excel(writer, index=False, sheet_name="Positions")
-        except Exception as e:
-            self.log_to_error(f"Failed to log positions to Excel: {e}")
-
-    def fetch_and_log_positions(self):
-        """
-        Fetch positions, check for changes, and log them if necessary.
-        """
-        try:
-            positions = self.api.get_positions()
-        except Exception as e:
-            self.log_to_error(f"Failed to fetch positions: {e}")
-            return
-
-        if positions:
-            if self.positions_have_changed(positions):
-                self.log_to_main(f"Positions have changed. Logging new positions.")
-                self.log_positions_to_excel(positions)
-                # Update the cached positions
-                self.last_logged_positions = {p["instrument"]: p for p in positions}
-           
-
     def run(self):
         while True:
             time.sleep(Bot.SLEEP)
             try:
                 self.process_candles(self.candle_manager.update_timings())
-                self.fetch_and_log_positions()  # Log positions regularly
             except Exception as error:
                 self.log_to_error(f"CRASH: {error}")
                 break

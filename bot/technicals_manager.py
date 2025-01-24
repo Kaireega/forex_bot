@@ -19,7 +19,8 @@ def apply_signal(row, trade_settings: TradeSettings):
         row.SPREAD <= trade_settings.maxspread and
         row.GAIN >= trade_settings.mingain and
         row.mid_c < row.BB_LW and row.mid_o > row.BB_LW and  # Bollinger Bands condition for BUY
-        row[f"RSI_{trade_settings.rsi_period}"] < trade_settings.rsi_oversold   # RSI condition for oversold
+        row[f"RSI_{trade_settings.rsi_period}"] < trade_settings.rsi_oversold and  # RSI condition for oversold
+        row.MACD > row.SIGNAL 
        
     ):
         return defs.BUY
@@ -28,8 +29,8 @@ def apply_signal(row, trade_settings: TradeSettings):
         row.SPREAD <= trade_settings.maxspread and
         row.GAIN >= trade_settings.mingain and
         row.mid_c > row.BB_UP and row.mid_o < row.BB_UP and  # Bollinger Bands condition for SELL
-        row[f"RSI_{trade_settings.rsi_period}"] > trade_settings.rsi_overbought   # RSI condition for overbought
-       
+        row[f"RSI_{trade_settings.rsi_period}"] > trade_settings.rsi_overbought  and # RSI condition for overbought
+       row.MACD < row.SIGNAL 
     ):
         return defs.SELL
 
@@ -80,7 +81,7 @@ def process_candles(df: pd.DataFrame, pair, trade_settings: TradeSettings, log_m
 
     log_cols = ['PAIR', 'time', 'mid_c', 'mid_o', 'SL', 'TP', 'SPREAD', 'GAIN', 'LOSS', 'SIGNAL']
     log_message(f"process_candles:\n{df[log_cols].tail()}", pair)
-
+  
     return df[log_cols].iloc[-1]
 
 
