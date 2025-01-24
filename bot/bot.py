@@ -26,6 +26,8 @@ class Bot:
         self.api = OandaApi()
         self.candle_manager = CandleManager(self.api, self.trade_settings, self.log_message, Bot.GRANULARITY)
 
+        self.last_logged_positions = {}  # Cache for tracking last logged positions
+
         self.log_to_main("Bot started")
         self.log_to_error("Bot started")
 
@@ -65,8 +67,19 @@ class Bot:
                     self.log_to_main(f"Place Trade: {trade_decision}")
                     place_trade(trade_decision, self.api, self.log_message, self.log_to_error, self.trade_risk)
 
+    def positions_have_changed(self, new_positions):
+        """
+        Check if the new positions differ from the last logged positions.
+        """
+        new_positions_dict = {p["instrument"]: p for p in new_positions}
+        if new_positions_dict != self.last_logged_positions:
+            return True
+        return False
+
     def log_positions_to_excel(self, positions, filename="./logs/position_tracking.xlsx"):
-        """Save position details to an Excel sheet."""
+        """
+        Save position details to an Excel sheet.
+        """
         if not positions:
             self.log_to_main("No positions to log. Skipping Excel update.")
             return
@@ -77,24 +90,19 @@ class Bot:
         file_exists = os.path.exists(filename)
 
         try:
-            # Use openpyxl for appending or creating the file
             if file_exists:
-                with pd.ExcelWriter(
-                    filename, mode="a", engine="openpyxl", if_sheet_exists="overlay"
-                ) as writer:
+                with pd.ExcelWriter(filename, mode="a", engine="openpyxl", if_sheet_exists="overlay") as writer:
                     df.to_excel(writer, index=False, sheet_name="Positions")
             else:
-                with pd.ExcelWriter(
-                    filename, mode="w", engine="openpyxl"
-                ) as writer:
+                with pd.ExcelWriter(filename, mode="w", engine="openpyxl") as writer:
                     df.to_excel(writer, index=False, sheet_name="Positions")
-
-            self.log_to_main(f"Logged positions to {filename}")
         except Exception as e:
             self.log_to_error(f"Failed to log positions to Excel: {e}")
 
     def fetch_and_log_positions(self):
-        """Fetch positions and log their details."""
+        """
+        Fetch positions, check for changes, and log them if necessary.
+        """
         try:
             positions = self.api.get_positions()
         except Exception as e:
@@ -102,11 +110,12 @@ class Bot:
             return
 
         if positions:
-            self.log_to_main(f"Fetched {len(positions)} positions.")
-            # Log positions to Excel
-            self.log_positions_to_excel(positions)
-        else:
-            self.log_to_main("No positions available.")
+            if self.positions_have_changed(positions):
+                self.log_to_main(f"Positions have changed. Logging new positions.")
+                self.log_positions_to_excel(positions)
+                # Update the cached positions
+                self.last_logged_positions = {p["instrument"]: p for p in positions}
+           
 
     def run(self):
         while True:
@@ -117,3 +126,4 @@ class Bot:
             except Exception as error:
                 self.log_to_error(f"CRASH: {error}")
                 break
+
