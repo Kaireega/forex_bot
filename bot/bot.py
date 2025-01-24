@@ -8,11 +8,12 @@ from infrastructure.log_wrapper import LogWrapper
 from models.trade_settings import TradeSettings
 from api.oanda_api import OandaApi
 import constants.defs as defs
-
+from dateutil import parser
+import pandas as pd
+import os
 
 
 class Bot:
-
     ERROR_LOG = "error"
     MAIN_LOG = "main"
     GRANULARITY = "M15"
@@ -31,7 +32,7 @@ class Bot:
     def load_settings(self):
         with open("./bot/settings.json", "r") as f:
             data = json.loads(f.read())
-            self.trade_settings = { k: TradeSettings(v, k) for k, v in data['pairs'].items() }
+            self.trade_settings = {k: TradeSettings(v, k) for k, v in data['pairs'].items()}
             self.trade_risk = data['trade_risk']
 
     def setup_logs(self):
@@ -57,21 +58,62 @@ class Bot:
             self.log_message(f"process_candles triggered:{triggered}", Bot.MAIN_LOG)
             for p in triggered:
                 last_time = self.candle_manager.timings[p].last_time
-                trade_decision = get_trade_decision(last_time, p, Bot.GRANULARITY, self.api, 
-                                                       self.trade_settings[p],  self.log_message)
+                trade_decision = get_trade_decision(last_time, p, Bot.GRANULARITY, self.api,
+                                                    self.trade_settings[p], self.log_message)
                 if trade_decision is not None and trade_decision.signal != defs.NONE:
                     self.log_message(f"Place Trade: {trade_decision}", p)
                     self.log_to_main(f"Place Trade: {trade_decision}")
                     place_trade(trade_decision, self.api, self.log_message, self.log_to_error, self.trade_risk)
 
+    def log_positions_to_excel(self, positions, filename="./logs/position_tracking.xlsx"):
+        """Save position details to an Excel sheet."""
+        if not positions:
+            self.log_to_main("No positions to log. Skipping Excel update.")
+            return
+
+        df = pd.DataFrame(positions)
+
+        # Check if the file exists
+        file_exists = os.path.exists(filename)
+
+        try:
+            # Use openpyxl for appending or creating the file
+            if file_exists:
+                with pd.ExcelWriter(
+                    filename, mode="a", engine="openpyxl", if_sheet_exists="overlay"
+                ) as writer:
+                    df.to_excel(writer, index=False, sheet_name="Positions")
+            else:
+                with pd.ExcelWriter(
+                    filename, mode="w", engine="openpyxl"
+                ) as writer:
+                    df.to_excel(writer, index=False, sheet_name="Positions")
+
+            self.log_to_main(f"Logged positions to {filename}")
+        except Exception as e:
+            self.log_to_error(f"Failed to log positions to Excel: {e}")
+
+    def fetch_and_log_positions(self):
+        """Fetch positions and log their details."""
+        try:
+            positions = self.api.get_positions()
+        except Exception as e:
+            self.log_to_error(f"Failed to fetch positions: {e}")
+            return
+
+        if positions:
+            self.log_to_main(f"Fetched {len(positions)} positions.")
+            # Log positions to Excel
+            self.log_positions_to_excel(positions)
+        else:
+            self.log_to_main("No positions available.")
 
     def run(self):
         while True:
             time.sleep(Bot.SLEEP)
             try:
                 self.process_candles(self.candle_manager.update_timings())
+                self.fetch_and_log_positions()  # Log positions regularly
             except Exception as error:
                 self.log_to_error(f"CRASH: {error}")
                 break
-    
-

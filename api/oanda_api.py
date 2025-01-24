@@ -207,13 +207,33 @@ class OandaApi:
         return None
 
 
+    def get_positions(self):
+        """Fetch all positions for the account with detailed information."""
+        url = f"accounts/{defs.ACCOUNT_ID}/positions"
+        ok, response = self.make_request(url)
 
+        if ok and 'positions' in response:
+            positions = response['positions']
+            detailed_positions = []
 
+            for position in positions:
+                detailed_positions.append({
+                    "instrument": position["instrument"],
+                    "realizedPL": float(position.get("pl", 0)),
+                    "unrealizedPL": float(position.get("unrealizedPL", 0)),
+                    "marginUsed": float(position.get("marginUsed", 0)),
+                    "commission": float(position.get("commission", 0)),
+                    "financing": float(position.get("financing", 0)),
+                    "long_units": position["long"].get("units", 0),
+                    "long_unrealizedPL": position["long"].get("unrealizedPL", 0),
+                    "short_units": position["short"].get("units", 0),
+                    "short_unrealizedPL": position["short"].get("unrealizedPL", 0),
+                })
 
-
-
-
-
+            return detailed_positions
+        else:
+            self.log_to_error(f"Error fetching positions: {response}")
+            return []
 
 
 
