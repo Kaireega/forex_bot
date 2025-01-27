@@ -8,7 +8,7 @@ from api.oanda_api import OandaApi
 CANDLE_COUNT = 3000
 
 INCREMENTS = {
-    'M15' : 15 * CANDLE_COUNT,
+    'M5' : 5 * CANDLE_COUNT,
     'H1' : 60 * CANDLE_COUNT,
     'H4' : 240 * CANDLE_COUNT
 }
@@ -92,18 +92,18 @@ def collect_data(pair, granularity, date_f, date_t, file_prefix, api: OandaApi )
 
 
 def run_collection(ic: InstrumentCollection, api: OandaApi):
-    our_curr = [ "CAD", "JPY", "USD", "EUR", "GBP"]
+    our_curr = ["USD","JPY","EUR","GBP"]
     for p1 in our_curr:
         for p2 in our_curr:
             pair = f"{p1}_{p2}"
             if pair in ic.instruments_dict.keys():
-                for granularity in ["M15", "H1", "H4"]:
+                for granularity in ["M5", "H1"]:
                     print(pair, granularity)
                     collect_data(
                         pair,
                         granularity,
-                        "2024-11-01T00:00:00Z",
-                        "2025-01-20T00:00:00Z",
+                        "2020-01-01T00:00:00Z",
+                        "2025-01-24T00:00:00Z",
                         "./data/",
                         api
                     )
