@@ -1,6 +1,7 @@
 import pandas as pd
+import pytz
 from models.trade_decision import TradeDecision
-from technicals.indicators import BollingerBands, ATR, RSI, MACD  # Ensure these are imported
+from technicals.indicators import BollingerBands, ATR, RSI, MACD, trend_following_with_patterns  # Ensure these are imported
 from technicals.patterns import apply_patterns
 
 pd.set_option('display.max_columns', None)
@@ -20,10 +21,10 @@ def apply_signal(row, trade_settings: TradeSettings):
     if (
         row.SPREAD <= trade_settings.maxspread and
         row.GAIN >= trade_settings.mingain and
-        row.mid_c < row.BB_LW and row.mid_o > row.BB_LW and  # Bollinger Bands condition for BUY
+        # row.mid_c < row.BB_LW and row.mid_o > row.BB_LW and  # Bollinger Bands condition for BUY
         row[f"RSI_{trade_settings.rsi_period}"] < trade_settings.rsi_oversold and  # RSI condition for oversold
         row.MACD > row.SIGNAL_MD and 
-        row.PREV_SHOOTING_STAR and
+        row.PREV_SHOOTING_STAR == True and
         row.ENGULFING == True 
     ):
         return defs.BUY
@@ -31,10 +32,11 @@ def apply_signal(row, trade_settings: TradeSettings):
     elif (
         row.SPREAD <= trade_settings.maxspread and
         row.GAIN >= trade_settings.mingain and
-        row.mid_c > row.BB_UP and row.mid_o < row.BB_UP and  # Bollinger Bands condition for SELL
+        # row.mid_c > row.BB_UP and row.mid_o < row.BB_UP and  # Bollinger Bands condition for SELL
         row[f"RSI_{trade_settings.rsi_period}"] > trade_settings.rsi_overbought  and # RSI condition for overbought
         row.MACD < row.SIGNAL_MD and
-        row.PREV_HANGING_MAN and row.ENGULFING == True
+        row.PREV_HANGING_MAN == True and 
+        row.ENGULFING == True
         
     ):
         return defs.SELL
@@ -72,11 +74,20 @@ def process_candles(df: pd.DataFrame, pair, trade_settings: TradeSettings, log_m
     df['PAIR'] = pair
     df['SPREAD'] = df.ask_c - df.bid_c
 
-    # Calculate indicators
-    df = BollingerBands(df, trade_settings.n_ma, trade_settings.n_std)
-    df = ATR(df, trade_settings.atr_period)
-    df = RSI(df, trade_settings.rsi_period)
-    df = MACD(df)  # Ensure MACD uses default or trade_settings parameters
+
+    if 'time' in df.columns:
+        df['time'] = pd.to_datetime(df['time'], utc=True)
+        eastern_tz = pytz.timezone('US/Eastern')
+        df['time'] = df['time'].dt.tz_convert(eastern_tz)
+        df['time'] = df['time'].dt.strftime('%I:%M %p')
+        
+    df = apply_patterns(df)
+    # # Calculate indicators
+    # df = BollingerBands(df, trade_settings.n_ma, trade_settings.n_std)
+    # df = ATR(df, trade_settings.atr_period)
+    # df = RSI(df, trade_settings.rsi_period)
+    # df = MACD(df)  # Ensure MACD uses default or trade_settings parameters
+    df = trend_following_with_patterns(df)
 
     df = apply_patterns(df)
 
@@ -93,7 +104,8 @@ def process_candles(df: pd.DataFrame, pair, trade_settings: TradeSettings, log_m
 
     log_cols = ['PAIR', 'time', 'mid_c', 'mid_o', 'SL', 'TP', 'SPREAD', 'GAIN', 'LOSS',
                  'SIGNAL','MACD','SIGNAL_MD','HIST','RSI_14','BB_MA','BB_UP',
-                 'BB_LW','ATR_14','PREV_SHOOTING_STAR','ENGULFING','SHOOTING_STAR','PREV_HANGING_MAN','HANGING_MAN']
+                 'BB_LW','BB_Signal','ATR_14','PREV_SHOOTING_STAR','ENGULFING',
+                 'SHOOTING_STAR','PREV_HANGING_MAN','HANGING_MAN']
     log_message(f"process_candles:\n{df[log_cols].tail()}", pair)
   
     return df[log_cols].iloc[-1]

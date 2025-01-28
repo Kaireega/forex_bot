@@ -4,8 +4,8 @@
         "EUR_USD": {
             "n_ma": 20,              
             "n_std": 2.0,             
-            "maxspread": 0.0002,      
-            "mingain": 0.0010,       
+            "maxspread": 0.0004,      
+            "mingain": 0.00070,       
             "riskreward": 2.5,        
             "atr_period": 14,         
             "atr_multiplier": 1.1,   
