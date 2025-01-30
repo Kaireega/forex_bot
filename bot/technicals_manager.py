@@ -1,7 +1,7 @@
 import pandas as pd
 import pytz
 from models.trade_decision import TradeDecision
-from technicals.indicators import BollingerBands, ATR, RSI, MACD, trend_following_with_patterns  # Ensure these are imported
+from technicals.indicators import BollingerBands, ATR, RSI, MACD ,EMA,ADX,identify_pin_bar# Ensure these are imported
 from technicals.patterns import apply_patterns
 
 pd.set_option('display.max_columns', None)
@@ -14,44 +14,84 @@ ADDROWS = 20
 
 
 def apply_signal(row, trade_settings: TradeSettings):
-    """
-    Determines the BUY or SELL signal based on Bollinger Bands, RSI, and MACD conditions.
-    """
-
-    if (
-        row.SPREAD <= trade_settings.maxspread and
-        row.GAIN >= trade_settings.mingain and
-        # row.mid_c < row.BB_LW and row.mid_o > row.BB_LW and  # Bollinger Bands condition for BUY
-        row[f"RSI_{trade_settings.rsi_period}"] < trade_settings.rsi_oversold and  # RSI condition for oversold
-        row.MACD > row.SIGNAL_MD and 
-        row.PREV_SHOOTING_STAR == True and
-        row.ENGULFING == True 
-    ):
-        return defs.BUY
-
-    elif (
-        row.SPREAD <= trade_settings.maxspread and
-        row.GAIN >= trade_settings.mingain and
-        # row.mid_c > row.BB_UP and row.mid_o < row.BB_UP and  # Bollinger Bands condition for SELL
-        row[f"RSI_{trade_settings.rsi_period}"] > trade_settings.rsi_overbought  and # RSI condition for overbought
-        row.MACD < row.SIGNAL_MD and
-        row.PREV_HANGING_MAN == True and 
-        row.ENGULFING == True
-        
-    ):
-        return defs.SELL
-
+    # Trend Filter
+    trend_up = row['EMA_20'] > row['EMA_50']
+    trend_strength = row['ADX_14'] > 25
+    
+    # Price Action Filter
+    bullish_pattern = row['ENGULFING'] or row['PIN_BAR_BULL']
+    bearish_pattern = row['ENGULFING'] or row['PIN_BAR_BEAR']
+    
+    # Momentum Confirmation
+    rsi_ok = ( (row[f"RSI_{trade_settings.rsi_period}"] < trade_settings.rsi_oversold) or (row[f"RSI_{trade_settings.rsi_period}"] > trade_settings.rsi_overbought))
+    
+    macd_ok = (row['MACD'] > row['SIGNAL_MD']) if trend_up else (row['MACD'] < row['SIGNAL_MD'])
+    
+    # Entry Conditions
+    if all([
+        row.SPREAD <= trade_settings.maxspread,
+        row.GAIN >= trade_settings.mingain,
+        trend_strength,
+        bullish_pattern if trend_up else bearish_pattern,
+        rsi_ok,
+        macd_ok,
+        (trend_up and row.mid_c > row['EMA_20']) or 
+        (not trend_up and row.mid_c < row['EMA_20'])
+    ]):
+        return defs.BUY if trend_up else defs.SELL
+    
     return defs.NONE
+
+# ----------------------------------------------------------------------
+    # if (
+    #     row.SPREAD <= trade_settings.maxspread and
+    #     row.GAIN >= trade_settings.mingain and
+    #     # row.mid_c < row.BB_LW and row.mid_o > row.BB_LW and  # Bollinger Bands condition for BUY
+    #     row[f"RSI_{trade_settings.rsi_period}"] < trade_settings.rsi_oversold and  # RSI condition for oversold
+    #     row.MACD > row.SIGNAL_MD and 
+    #     row.PREV_SHOOTING_STAR == True and
+    #     row.ENGULFING == True 
+    # ):
+    #     return defs.BUY
+
+    # elif (
+    #     row.SPREAD <= trade_settings.maxspread and
+    #     row.GAIN >= trade_settings.mingain and
+    #     # row.mid_c > row.BB_UP and row.mid_o < row.BB_UP and  # Bollinger Bands condition for SELL
+    #     row[f"RSI_{trade_settings.rsi_period}"] > trade_settings.rsi_overbought  and # RSI condition for overbought
+    #     row.MACD < row.SIGNAL_MD and
+    #     row.PREV_HANGING_MAN == True and 
+    #     row.ENGULFING == True
+        
+    # ):
+    #     return defs.SELL
+
+    # return defs.NONE
+
+
+# def apply_SL(row, trade_settings: TradeSettings):
+#     """
+#     Calculates the Stop Loss (SL) using ATR for dynamic adjustment based on volatility.
+#     """
+#     if row.SIGNAL == defs.BUY:
+#         return row.mid_c - (row[f"ATR_{trade_settings.atr_period}"] * trade_settings.atr_multiplier)
+#     elif row.SIGNAL == defs.SELL:
+#         return row.mid_c + (row[f"ATR_{trade_settings.atr_period}"] * trade_settings.atr_multiplier)
+#     return 0.0
 
 
 def apply_SL(row, trade_settings: TradeSettings):
     """
-    Calculates the Stop Loss (SL) using ATR for dynamic adjustment based on volatility.
+    Adjusts Stop Loss dynamically using a trailing stop (50% of ATR).
     """
+    atr_sl = row[f"ATR_{trade_settings.atr_period}"] * trade_settings.atr_multiplier
+    trailing_sl = row[f"ATR_{trade_settings.atr_period}"] * 0.5  # 50% ATR trailing stop
+
     if row.SIGNAL == defs.BUY:
-        return row.mid_c - (row[f"ATR_{trade_settings.atr_period}"] * trade_settings.atr_multiplier)
+        return max(row.mid_c - atr_sl, row.mid_c - trailing_sl)
     elif row.SIGNAL == defs.SELL:
-        return row.mid_c + (row[f"ATR_{trade_settings.atr_period}"] * trade_settings.atr_multiplier)
+        return min(row.mid_c + atr_sl, row.mid_c + trailing_sl)
+
     return 0.0
 
 
@@ -82,14 +122,16 @@ def process_candles(df: pd.DataFrame, pair, trade_settings: TradeSettings, log_m
         df['time'] = df['time'].dt.strftime('%I:%M %p')
         
     df = apply_patterns(df)
-    # # Calculate indicators
-    # df = BollingerBands(df, trade_settings.n_ma, trade_settings.n_std)
-    # df = ATR(df, trade_settings.atr_period)
-    # df = RSI(df, trade_settings.rsi_period)
-    # df = MACD(df)  # Ensure MACD uses default or trade_settings parameters
-    df = trend_following_with_patterns(df)
-
-    df = apply_patterns(df)
+    # Calculate indicators
+    df = BollingerBands(df, trade_settings.n_ma, trade_settings.n_std)
+    df = ATR(df, trade_settings.atr_period)
+    df = RSI(df, trade_settings.rsi_period)
+    df = MACD(df)  # Ensure MACD uses default or trade_settings parameters
+    df['EMA_20'] = EMA(df, 20)
+    df['EMA_50'] = EMA(df, 50)
+    df['ADX_14'] = ADX(df)
+    df =identify_pin_bar(df)
+    
 
 
     df['GAIN'] = abs(df.mid_c - df.BB_MA)
@@ -97,15 +139,21 @@ def process_candles(df: pd.DataFrame, pair, trade_settings: TradeSettings, log_m
     df['SL'] = df.apply(apply_SL, axis=1, trade_settings=trade_settings)
     df['TP'] = df.apply(apply_TP, axis=1, trade_settings=trade_settings)
     df['LOSS'] = abs(df.mid_c - df.SL)
-    df['PREV_SHOOTING_STAR'] = df['SHOOTING_STAR'].shift(1)
-    df['PREV_HANGING_MAN'] = df['HANGING_MAN'].shift(1)
+    # df['PREV_SHOOTING_STAR'] = df['SHOOTING_STAR'].shift(1)
+    # df['PREV_HANGING_MAN'] = df['HANGING_MAN'].shift(1)
+   
+    # log_cols = ['PAIR', 'time', 'mid_c', 'mid_o', 'SL', 'TP', 'SPREAD', 'GAIN', 'LOSS',
+    #              'SIGNAL','MACD','SIGNAL_MD','HIST','RSI_14','BB_MA','BB_UP',
+    #              'BB_LW','BB_Signal','ATR_14','PREV_SHOOTING_STAR','ENGULFING',
+    #              'SHOOTING_STAR','PREV_HANGING_MAN','HANGING_MAN']
 
 
 
-    log_cols = ['PAIR', 'time', 'mid_c', 'mid_o', 'SL', 'TP', 'SPREAD', 'GAIN', 'LOSS',
-                 'SIGNAL','MACD','SIGNAL_MD','HIST','RSI_14','BB_MA','BB_UP',
-                 'BB_LW','BB_Signal','ATR_14','PREV_SHOOTING_STAR','ENGULFING',
-                 'SHOOTING_STAR','PREV_HANGING_MAN','HANGING_MAN']
+    log_cols = ['PAIR', 'time', 'mid_c', 'EMA_20', 'EMA_50', 'ADX_14', 
+                'RSI_14', 'MACD', 'SIGNAL_MD', 'ENGULFING', 'PIN_BAR_BULL', 
+                'PIN_BAR_BEAR', 'SL', 'TP', 'SPREAD', 'GAIN', 'LOSS', 'SIGNAL']
+
+
     log_message(f"process_candles:\n{df[log_cols].tail()}", pair)
   
     return df[log_cols].iloc[-1]

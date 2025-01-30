@@ -7,8 +7,8 @@ def BollingerBands(df: pd.DataFrame, n=20, s=2):
     df['BB_MA'] = typical_p.rolling(window=n).mean()
     df['BB_UP'] = df['BB_MA'] + stddev * s
     df['BB_LW'] = df['BB_MA'] - stddev * s
-    df['BB_Signal'] = np.where(typical_p > df['Upper_Band'], 'Sell',
-                               np.where(df.mid_c < df['Lower_Band'], 'Buy', None))
+    df['BB_Signal'] = np.where(typical_p > df['BB_UP'], 'Sell',
+                               np.where(df.mid_c < df['BB_LW'], 'Buy', None))
     return df
 
 
@@ -51,12 +51,6 @@ def MACD(df: pd.DataFrame, n_slow=26, n_fast=12, n_signal=9):
     df['HIST'] = df.MACD - df.SIGNAL_MD
 
     return df
-
-
-
-
-
-
 
 
 # 2. Moving Average Crossover
@@ -110,3 +104,53 @@ def two_period_rsi(df: pd.DataFrame):
     return df
 
 
+# Add these EMA and ADX functions to your indicators.py
+def EMA(df, period, column='mid_c'):
+    return df[column].ewm(span=period, adjust=False).mean()
+
+def ADX(df, period=14):
+    high = df['mid_h']
+    low = df['mid_l']
+    close = df['mid_c']
+    
+    plus_dm = high.diff()
+    minus_dm = low.diff()
+    plus_dm[plus_dm < 0] = 0
+    minus_dm[minus_dm > 0] = 0
+    
+    tr1 = pd.DataFrame(high - low)
+    tr2 = pd.DataFrame(abs(high - close.shift(1)))
+    tr3 = pd.DataFrame(abs(low - close.shift(1)))
+    frames = [tr1, tr2, tr3]
+    tr = pd.concat(frames, axis=1).max(axis=1)
+    atr = tr.rolling(period).mean()
+    
+    plus_di = 100 * (plus_dm.ewm(alpha=1/period).mean() / atr)
+    minus_di = 100 * (minus_dm.ewm(alpha=1/period).mean() / atr)
+    dx = (abs(plus_di - minus_di) / (plus_di + minus_di)) * 100
+    adx = dx.rolling(period).mean()
+    
+    return adx
+
+def identify_pin_bar(df: pd.DataFrame):
+
+    body_ratio=0.2
+    wick_ratio=0.6
+
+    total_range = df["mid_h"] - df["mid_l"]
+    body_size = abs(df["mid_c"] - df["mid_o"])
+    upper_wick = df["mid_h"] - df[["mid_c", "mid_o"]].max(axis=1)
+    lower_wick = df[["mid_c", "mid_o"]].min(axis=1) - df["mid_l"]
+
+    df["PIN_BAR_BULL"] = (
+        (df["mid_c"] > df["mid_o"]) &  # Bullish body
+        ((body_size / total_range) < body_ratio) &  # Smaller body relative to total range
+        ((lower_wick / total_range) > wick_ratio)  # Lower wick must be dominant
+    )
+
+    df["PIN_BAR_BEAR"] = (
+        (df["mid_o"] > df["mid_c"]) &  # Bearish body
+        ((body_size / total_range) < body_ratio) &  # Smaller body relative to total range
+        ((upper_wick / total_range) > wick_ratio)  # Upper wick must be dominant
+    )
+    return df

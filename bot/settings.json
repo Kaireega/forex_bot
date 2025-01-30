@@ -1,70 +1,44 @@
 {
-    "trade_risk": 1,
+    "trade_risk": 1.0,
     "pairs": {
-        "EUR_USD": {
-            "n_ma": 20,              
-            "n_std": 2.0,             
-            "maxspread": 0.0004,      
-            "mingain": 0.00070,       
-            "riskreward": 2.5,        
-            "atr_period": 14,         
-            "atr_multiplier": 1.1,   
-            "atr_threshold": 0.0004, 
-            "rsi_period": 14,        
-            "rsi_overbought": 65,     
-            "rsi_oversold": 35       
-        },
-        "USD_JPY": {
-            "n_ma": 20,
-            "n_std": 2.0,
-            "maxspread": 0.035,       
-            "mingain": 0.12,          
-            "riskreward": 2.5, 
-            "atr_period": 14,      
-            "atr_multiplier": 0.6,    
-            "atr_threshold": 0.04,    
-            "rsi_period": 14,
-            "rsi_overbought": 70,
-            "rsi_oversold": 30
-        },
-        "USD_CAD": {
-            "n_ma": 20,
-            "n_std": 2.0,
-            "maxspread": 0.0002,    
-            "mingain": 0.0010,       
-            "riskreward": 2.5,
-            "atr_period": 14,
-            "atr_multiplier": 1.1,
-            "atr_threshold": 0.0004,
-            "rsi_period": 14,
-            "rsi_overbought": 65,
-            "rsi_oversold": 35
-        },
-        "GBP_USD": {
-            "n_ma": 20,
-            "n_std": 2.0,
-            "maxspread": 0.0003,     
-            "mingain": 0.0010,       
-            "riskreward": 2.5,
-            "atr_period": 14,
-            "atr_multiplier": 1.1,
-            "atr_threshold": 0.0004,
-            "rsi_period": 14,
-            "rsi_overbought": 65,
-            "rsi_oversold": 35
-        },
-        "GBP_JPY": {
-            "n_ma": 20,
-            "n_std": 2.0,
-            "maxspread": 0.035,       
-            "mingain": 0.12,          
-            "riskreward": 2.5, 
-            "atr_period": 14,      
-            "atr_multiplier": 0.6,    
-            "atr_threshold": 0.04,    
-            "rsi_period": 14,
-            "rsi_overbought": 70,
-            "rsi_oversold": 30
-        }
+      "GBP_USD": {
+        "maxspread": 0.00015,   
+        "mingain": 8,             
+        "rsi_period": 14,
+        "rsi_oversold": 28,
+        "rsi_overbought": 72,
+        "atr_period": 10,
+        "atr_threshold": 3,      
+        "atr_multiplier": 1.2,  
+        "riskreward": 2.0,
+        "n_ma": 20,
+        "n_std": 2
+      },
+      "USD_CAD": {
+        "maxspread": 0.00025,     
+        "mingain": 6,              
+        "rsi_period": 14,
+        "rsi_overbought": 68,
+        "rsi_oversold": 32,
+        "atr_period": 10,
+        "atr_threshold": 2.5,    
+        "atr_multiplier": 1.3,     
+        "riskreward": 2.5,
+        "n_ma": 20,
+        "n_std": 2
+      },
+      "USD_JPY": {
+        "maxspread": 0.04,     
+        "mingain": 20,            
+        "rsi_period": 14,
+        "rsi_overbought": 73,
+        "rsi_oversold": 27,
+        "atr_period": 10,
+        "atr_threshold": 25,       
+        "atr_multiplier": 1.1,     
+        "riskreward": 2.5,
+        "n_ma": 20,
+        "n_std": 2
+      }
     }
-}
+  }

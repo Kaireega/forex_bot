@@ -27,6 +27,7 @@ def bloomberg_com():
     for card in cards:
         ca = card.find('a', {'data-testid': 'Heading'})
         links.append(get_article(ca))
+        
     return links
 
 
