@@ -66,5 +66,5 @@ def get_monthly_data(month):
 
     # Convert the data into a DataFrame
     df = pd.DataFrame(month_data)
-    return month_data
+    return df
 

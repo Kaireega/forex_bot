@@ -16,8 +16,8 @@ import os
 class Bot:
     ERROR_LOG = "error"
     MAIN_LOG = "main"
-    GRANULARITY = "M1"
-    SLEEP = 10
+    GRANULARITY = "M5"
+    SLEEP = 30
 
     def __init__(self):
         self.load_settings()

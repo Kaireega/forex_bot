@@ -8,7 +8,7 @@ from api.oanda_api import OandaApi
 CANDLE_COUNT = 3000
 
 INCREMENTS = {
-    'M5' : 5 * CANDLE_COUNT,
+    'M15' : 15 * CANDLE_COUNT,
     'H1' : 60 * CANDLE_COUNT,
     'H4' : 240 * CANDLE_COUNT
 }
@@ -97,7 +97,7 @@ def run_collection(ic: InstrumentCollection, api: OandaApi):
         for p2 in our_curr:
             pair = f"{p1}_{p2}"
             if pair in ic.instruments_dict.keys():
-                for granularity in ["M5", "H1"]:
+                for granularity in ["M15"]:
                     print(pair, granularity)
                     collect_data(
                         pair,

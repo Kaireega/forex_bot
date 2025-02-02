@@ -115,20 +115,29 @@ class GuruTester:
             remove_spread( self.df_m5)
 
 
-        apply_signals(self.df_big,
-                    self.PROFIT_FACTOR,
-                    self.apply_signal)
+        # Apply signals
+        apply_signals(self.df_big, self.PROFIT_FACTOR, self.apply_signal)
 
-
-        df_m5_slim = self.df_m5[['time','bid_h', 'bid_l', 'ask_h', 'ask_l' ]].copy()
+        # Select relevant columns and create signals
+        df_m5_slim = self.df_m5[['time', 'bid_h', 'bid_l', 'ask_h', 'ask_l']].copy()
         df_signals = create_signals(self.df_big, time_d=self.time_d)
 
+        # Merge DataFrames
         self.merged = pd.merge(left=df_m5_slim, right=df_signals, on='time', how='left')
+
+        # Infer object types before filling NA values
+        self.merged = self.merged.infer_objects(copy=False)
+
+        # Fill missing values explicitly
         self.merged.fillna(0, inplace=True)
-        self.merged.SIGNAL = self.merged.SIGNAL.astype(int)
+
+        # Ensure SIGNAL is explicitly converted to integer
+        if 'SIGNAL' in self.merged.columns:
+            self.merged['SIGNAL'] = pd.to_numeric(self.merged['SIGNAL'], errors='coerce').fillna(0).astype(int)
+
 
     def run_test(self):
-        #print("run_test...")
+        print("run_test...")
         open_trades_m5 = []
         closed_trades_m5 = []
 
@@ -144,4 +153,4 @@ class GuruTester:
             open_trades_m5 = [x for x in open_trades_m5 if x.running == True]
 
         self.df_results = pd.DataFrame.from_dict([vars(x) for x in closed_trades_m5]) 
-        #print("Result:", self.df_results.result.sum())
+        # print("Result:", self.df_results.result.sum())
