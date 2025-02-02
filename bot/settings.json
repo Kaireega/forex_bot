@@ -7,12 +7,12 @@
             "maxspread": 0.0004,      
             "mingain": 0.00070,       
             "riskreward": 2.0,        
-            "atr_period": 10,         
+            "atr_period": 14,         
             "atr_multiplier": 1.1,   
             "atr_threshold": 0.0004, 
             "rsi_period": 14,        
-            "rsi_overbought": 72,     
-            "rsi_oversold": 28       
+            "rsi_overbought": 65,     
+            "rsi_oversold": 25       
         },
         "USD_JPY": {
             "n_ma": 20,
