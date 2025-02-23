@@ -64,7 +64,10 @@ def moving_average_crossover(df: pd.DataFrame, short_window=20, long_window=60):
 # 5. Heikin-Ashi
 def heikin_ashi(df: pd.DataFrame):
     df['HA_Close'] = (df.mid_o + df.mid_h + df.mid_l + df.mid_c) / 4
-    df['HA_Open'] = (df.mid_o.shift(1) + df.mid_c.shift(1)) / 2
+    ha_open = [(df.mid_o[0] + df.mid_c[0]) / 2]
+    for i in range(1, len(df)):
+        ha_open.append((ha_open[i-1] + df['HA_Close'][i-1]) / 2)
+    df['HA_Open'] = ha_open
     df['HA_High'] = df[['mid_h', 'HA_Open', 'HA_Close']].max(axis=1)
     df['HA_Low'] = df[['mid_l', 'HA_Open', 'HA_Close']].min(axis=1)
     return df
@@ -154,3 +157,4 @@ def identify_pin_bar(df: pd.DataFrame):
         ((upper_wick / total_range) > wick_ratio)  # Upper wick must be dominant
     )
     return df
+
