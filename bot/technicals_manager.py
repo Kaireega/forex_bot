@@ -1,7 +1,7 @@
 import pandas as pd
 import pytz
 from models.trade_decision import TradeDecision
-from technicals.indicators import BollingerBands, ATR, RSI, MACD ,EMA,ADX,heikin_ashi ,identify_pin_bar# Ensure these are imported
+from technicals.indicators import BollingerBands, ATR, RSI, MACD, EMA, ADX, heikin_ashi, identify_pin_bar
 from technicals.patterns import apply_patterns
 
 pd.set_option('display.max_columns', None)
@@ -12,58 +12,60 @@ import constants.defs as defs
 
 ADDROWS = 20
 
-
 def apply_signal(row, trade_settings: TradeSettings):
-    # Multi-Timeframe Trend Confirmation
-    primary_trend_up = row['EMA_20'] > row['EMA_50']
-    secondary_trend_up = row['EMA_20'] > row['EMA_200']
-    trend_strength = row['ADX_14'] > 25
+    # Trend Configuration
+    primary_trend_up = row['EMA_10'] > row['EMA_30']
+    secondary_trend_up = row['EMA_10'] > row['EMA_100']
     
-    # Volatility Filter
-    normalized_volatility = row[f"ATR_{trade_settings.atr_period}"] / row['mid_c']
+    # Dynamic ADX Threshold
+    adx_smooth = row['ADX_14_SMOOTH']
+    trend_strength = adx_smooth > 22
     
-    # Enhanced Price Action Patterns
-    bullish_pattern = (row['ENGULFING'] and row['PIN_BAR_BULL']) or row['MORNING_STAR']
-    bearish_pattern = (row['ENGULFING'] and row['PIN_BAR_BEAR']) or row['EVENING_STAR']
+    # Adaptive Volatility Filter
+    atr_ratio = row[f"ATR_{trade_settings.atr_period}"] / row['average_atr']
+    volatility_ok = 0.8 < atr_ratio < 1.5
     
-    # Momentum Cluster
-    rsi_ok = (row[f"RSI_{trade_settings.rsi_period}"] < trade_settings.rsi_oversold) if primary_trend_up else \
-             (row[f"RSI_{trade_settings.rsi_period}"] > trade_settings.rsi_overbought)
+    # Price Action Patterns
+    bullish_pattern = row['ENGULFING'] or row['PIN_BAR_BULL'] or (row['HA_Close'] > row['HA_Open_3MAX'])
+    bearish_pattern = row['ENGULFING'] or row['PIN_BAR_BEAR'] or (row['HA_Close'] < row['HA_Open_3MIN'])
     
-    macd_ok = (row['MACD'] > row['SIGNAL_MD']) if primary_trend_up else (row['MACD'] < row['SIGNAL_MD'])
+    # Momentum Configuration
+    rsi_mid = 40 if primary_trend_up else 60
+    rsi_ok = (row[f"RSI_{trade_settings.rsi_period}"] < rsi_mid) if primary_trend_up else (row[f"RSI_{trade_settings.rsi_period}"] > rsi_mid)
     
-    # Session Timing Filter (NY/London Overlap 13:00-16:00 GMT)
+    macd_hist = row['MACD_HIST']
+    macd_ok = (macd_hist > 0) if primary_trend_up else (macd_hist < 0)
+    
+    # Session Filter
     session_ok = row['session_ny_london']
     
     # Entry Conditions
     long_conditions = all([
         row.SPREAD <= trade_settings.maxspread,
-        row.GAIN >= trade_settings.mingain,
+        row.GAIN >= trade_settings.mingain * 0.8,
         trend_strength,
         primary_trend_up,
-        secondary_trend_up,
         bullish_pattern,
         rsi_ok,
         macd_ok,
         session_ok,
-        normalized_volatility < 0.002,
-        row.mid_c > row['EMA_20'],
-        row['HA_Close'] > row['HA_Open']
+        volatility_ok,
+        row.mid_c > row['EMA_10'],
+        row['HA_Close'] > row['HA_Open_3MEAN']
     ])
     
     short_conditions = all([
         row.SPREAD <= trade_settings.maxspread,
-        row.GAIN >= trade_settings.mingain,
+        row.GAIN >= trade_settings.mingain * 0.8,
         trend_strength,
         not primary_trend_up,
-        not secondary_trend_up,
         bearish_pattern,
         rsi_ok,
         macd_ok,
         session_ok,
-        normalized_volatility < 0.002,
-        row.mid_c < row['EMA_20'],
-        row['HA_Close'] < row['HA_Open']
+        volatility_ok,
+        row.mid_c < row['EMA_10'],
+        row['HA_Close'] < row['HA_Open_3MEAN']
     ])
     
     if long_conditions:
@@ -73,110 +75,70 @@ def apply_signal(row, trade_settings: TradeSettings):
     
     return defs.NONE
 
-# ----------------------------------------------------------------------
-    # if (
-    #     row.SPREAD <= trade_settings.maxspread and
-    #     row.GAIN >= trade_settings.mingain and
-    #     # row.mid_c < row.BB_LW and row.mid_o > row.BB_LW and  # Bollinger Bands condition for BUY
-    #     row[f"RSI_{trade_settings.rsi_period}"] < trade_settings.rsi_oversold and  # RSI condition for oversold
-    #     row.MACD > row.SIGNAL_MD and 
-    #     row.PREV_SHOOTING_STAR == True and
-    #     row.ENGULFING == True 
-    # ):
-    #     return defs.BUY
-
-    # elif (
-    #     row.SPREAD <= trade_settings.maxspread and
-    #     row.GAIN >= trade_settings.mingain and
-    #     # row.mid_c > row.BB_UP and row.mid_o < row.BB_UP and  # Bollinger Bands condition for SELL
-    #     row[f"RSI_{trade_settings.rsi_period}"] > trade_settings.rsi_overbought  and # RSI condition for overbought
-    #     row.MACD < row.SIGNAL_MD and
-    #     row.PREV_HANGING_MAN == True and 
-    #     row.ENGULFING == True
-        
-    # ):
-    #     return defs.SELL
-
-    # return defs.NONE
-
-
-# def apply_SL(row, trade_settings: TradeSettings):
-#     """
-#     Calculates the Stop Loss (SL) using ATR for dynamic adjustment based on volatility.
-#     """
-#     if row.SIGNAL == defs.BUY:
-#         return row.mid_c - (row[f"ATR_{trade_settings.atr_period}"] * trade_settings.atr_multiplier)
-#     elif row.SIGNAL == defs.SELL:
-#         return row.mid_c + (row[f"ATR_{trade_settings.atr_period}"] * trade_settings.atr_multiplier)
-#     return 0.0
-
 def apply_SL(row, trade_settings: TradeSettings):
     """Adaptive trailing stop with volatility bands"""
-    base_atr = row[f"ATR_{trade_settings.atr_period}"]
+    atr = row[f"ATR_{trade_settings.atr_period}"]
     if row.SIGNAL == defs.BUY:
-        initial_sl = row.mid_c - (base_atr * 1.5)
-        trailing_sl = row.mid_h - (base_atr * 0.5)
-        return max(initial_sl, trailing_sl)
+        return max(
+            row.mid_c - (atr * 1.5),
+            row.mid_l - (atr * 0.3)
+        )
     elif row.SIGNAL == defs.SELL:
-        initial_sl = row.mid_c + (base_atr * 1.5)
-        trailing_sl = row.mid_l + (base_atr * 0.5)
-        return min(initial_sl, trailing_sl)
+        return min(
+            row.mid_c + (atr * 1.5),
+            row.mid_h + (atr * 0.3)
+        )
     return 0.0
-
-def apply_TP(row, trade_settings: TradeSettings):
-    """Dynamic TP based on price structure"""
-    if row.SIGNAL == defs.BUY:
-        recent_high = row['mid_h'].rolling(10).max()
-        return recent_high + (row[f"ATR_{trade_settings.atr_period}"] * 0.5)
-    elif row.SIGNAL == defs.SELL:
-        recent_low = row['mid_l'].rolling(10).min()
-        return recent_low - (row[f"ATR_{trade_settings.atr_period}"] * 0.5)
-    return 0.0
-
 
 def process_candles(df: pd.DataFrame, pair, trade_settings: TradeSettings, log_message):
-  
-    df.reset_index(drop=True, inplace=True)
+    df = df.copy().reset_index(drop=True)
     df['PAIR'] = pair
     df['SPREAD'] = df.ask_c - df.bid_c
-
 
     if 'time' in df.columns:
         df['time'] = pd.to_datetime(df['time'], utc=True)
         eastern_tz = pytz.timezone('US/Eastern')
         df['time'] = df['time'].dt.tz_convert(eastern_tz)
         df['hour'] = df['time'].dt.hour
-        df['session_ny_london'] = df['hour'].between(8, 11)  # 8-11 AM EST
+        df['session_ny_london'] = df['hour'].between(6, 13)  # Expanded session
         df['time'] = df['time'].dt.strftime('%I:%M %p')
         
     df = apply_patterns(df)
+    
     # Calculate indicators
     df = BollingerBands(df, trade_settings.n_ma, trade_settings.n_std)
     df = ATR(df, trade_settings.atr_period)
     df = RSI(df, trade_settings.rsi_period)
-    df = MACD(df) 
+    df = MACD(df).assign(MACD_HIST=lambda x: x.MACD - x.SIGNAL_MD)
     df = heikin_ashi(df)
-    df['EMA_20'] = EMA(df, 20)
-    df['EMA_50'] = EMA(df, 50)
-    df['EMA_200'] = EMA(df, 200)
+    
+    # EMAs
+    df['EMA_10'] = EMA(df, 10)
+    df['EMA_30'] = EMA(df, 30)
+    df['EMA_100'] = EMA(df, 100)
+    
+    # ADX Smoothing
     df['ADX_14'] = ADX(df)
-    df =identify_pin_bar(df)
+    df['ADX_14_SMOOTH'] = df['ADX_14'].rolling(5).mean()
+    
+    # Heikin Ashi Features
+    df['HA_Open_3MAX'] = df['HA_Open'].rolling(3).max()
+    df['HA_Open_3MIN'] = df['HA_Open'].rolling(3).min()
+    df['HA_Open_3MEAN'] = df['HA_Open'].rolling(3).mean()
+    
+    df = identify_pin_bar(df)
     df['average_atr'] = df[f"ATR_{trade_settings.atr_period}"].rolling(50).mean()
-   
-
-
+    
     df['GAIN'] = abs(df.mid_c - df.BB_MA)
     df['SIGNAL'] = df.apply(apply_signal, axis=1, trade_settings=trade_settings)
     df['SL'] = df.apply(apply_SL, axis=1, trade_settings=trade_settings)
-    df['TP'] = df.apply(apply_TP, axis=1, trade_settings=trade_settings)
     df['LOSS'] = abs(df.mid_c - df.SL)
 
-   
     log_cols = [
-        'PAIR', 'time', 'mid_c', 'EMA_20', 'EMA_50', 'EMA_200', 'ADX_14',
-        'RSI_14', 'MACD', 'SIGNAL_MD', 'HA_Close', 'HA_Open', 'session_ny_london',
-        'ENGULFING', 'PIN_BAR_BULL', 'PIN_BAR_BEAR', 'SL', 'TP', 'SPREAD', 
-        'GAIN', 'LOSS', 'SIGNAL'
+        'PAIR', 'time', 'mid_c', 'EMA_10', 'EMA_30', 'EMA_100', 'ADX_14_SMOOTH',
+        f"RSI_{trade_settings.rsi_period}", 'MACD_HIST', 'HA_Close', 'HA_Open', 
+        'session_ny_london', 'ENGULFING', 'PIN_BAR_BULL', 'PIN_BAR_BEAR', 
+        'SL', 'SPREAD', 'GAIN', 'LOSS', 'SIGNAL'
     ]
 
     log_message(f"process_candles:\n{df[log_cols].tail()}", pair)
@@ -215,3 +177,4 @@ def get_trade_decision(candle_time, pair, granularity, api: OandaApi, trade_sett
         return TradeDecision(last_row)
 
     return None
+

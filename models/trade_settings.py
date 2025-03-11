@@ -12,7 +12,7 @@ class TradeSettings:
 
         self.atr_multiplier = ob['atr_multiplier']
         self.atr_period = ob['atr_period']
-        self.atr_threshold = ob['atr_threshold']
+        # self.atr_threshold = ob['atr_threshold']
         
         self.rsi_period = ob['rsi_period']
         self.rsi_overbought = ob['rsi_overbought']
